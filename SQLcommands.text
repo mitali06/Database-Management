@@ -1,0 +1,354 @@
+ibm@ibm26:~$ sudo mysql -u root -p
+[sudo] password for ibm: 
+Sorry, try again.
+[sudo] password for ibm: 
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.26-0ubuntu0.18.04.1 (Ubuntu)
+
+
+
+mysql> create database myuniversity;
+Query OK, 1 row affected (0.01 sec)
+
+
+mysql> describe university;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| uid   | int(11)     | NO   | PRI | NULL    |       |
+| uname | varchar(10) | NO   | UNI | NULL    |       |
+| loc   | varchar(10) | NO   |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+
+mysql> insert into university values(10000,"MITWPU","PUNE");
+Query OK, 1 row affected (0.05 sec)
+
+mysql> describe university;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| uid   | int(11)     | NO   | PRI | NULL    |       |
+| uname | varchar(10) | NO   | UNI | NULL    |       |
+| loc   | varchar(10) | NO   |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+
+mysql> select * from university;
++-------+--------+------+
+| uid   | uname  | loc  |
++-------+--------+------+
+| 10000 | MITWPU | PUNE |
++-------+--------+------+
+1 row in set (0.00 sec)
+
+mysql> create table faculty(fid int primary key, fname varchar(20) not null,uid int,foreign key fk1(uid) references university(uid) );
+Query OK, 0 rows affected (0.23 sec)
+
+mysql> describe faculty;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| fid   | int(11)     | NO   | PRI | NULL    |       |
+| fname | varchar(20) | NO   |     | NULL    |       |
+| uid   | int(11)     | YES  | MUL | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+
+mysql> insert into faculty values(1,"Anil",10000);
+Query OK, 1 row affected (0.04 sec)
+
+
+mysql> create table school(sid int primary key, sname varchar(20) not null,intake int, fid int, foreign key(fid) references faculty(fid) );
+Query OK, 0 rows affected (0.22 sec)
+
+
+mysql> create table program(pid int primary key, pname varchar(20) not null, duration int, sid int, foreign key(sid) references school(sid) ); 
+Query OK, 0 rows affected (0.22 sec)
+
+
+mysql> show tables;
++------------------------+
+| Tables_in_myuniversity |
++------------------------+
+| faculty                |
+| program                |
+| school                 |
+| university             |
++------------------------+
+4 rows in set (0.00 sec)
+
+
+mysql> create table course(cid int primary key, cname varchar(20) not null, credit int, pid int, foreign key(pid) references program(pid) );
+Query OK, 0 rows affected (0.27 sec)
+
+
+mysql> create table lecturer(lid int primary key, lname varchar(20) not null, specificaion varchar(20) not null, sal int check(sal>0), sid int, foreign key(sid) references school(sid) );
+Query OK, 0 rows affected (0.22 sec)
+
+mysql> describe lecturer;
++--------------+-------------+------+-----+---------+-------+
+| Field        | Type        | Null | Key | Default | Extra |
++--------------+-------------+------+-----+---------+-------+
+| lid          | int(11)     | NO   | PRI | NULL    |       |
+| lname        | varchar(20) | NO   |     | NULL    |       |
+| specificaion | varchar(20) | NO   |     | NULL    |       |
+| sal          | int(11)     | YES  |     | NULL    |       |
+| sid          | int(11)     | YES  | MUL | NULL    |       |
++--------------+-------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+
+mysql> create table student(stdid int primary key, sname varchar(20) not null, addr varchar(20), pid int, foreign key(pid) references program(pid) );
+Query OK, 0 rows affected (0.24 sec)
+
+
+mysql> create table enroll(stdid int, cid int, primary key(stdid,cid), foreign key(stdid) references student(stdid), foreign key(cid) references course(cid) );
+Query OK, 0 rows affected (0.25 sec)
+
+mysql> create table taught(cid int, lid int, primary key(cid,lid), foreign key(cid) references course(cid), foreign key(lid) references lecturer(lid) );
+Query OK, 0 rows affected (0.21 sec)
+
+
+mysql> select * from faculty;
++-----+-------+-------+
+| fid | fname | uid   |
++-----+-------+-------+
+|   1 | Anil  | 10000 |
++-----+-------+-------+
+1 row in set (0.00 sec)
+
+mysql> select * from student;
+Empty set (0.00 sec)
+
+mysql> select * from university;
++-------+--------+------+
+| uid   | uname  | loc  |
++-------+--------+------+
+| 10000 | MITWPU | PUNE |
++-------+--------+------+
+1 row in set (0.00 sec)
+
+
+mysql> alter table lecturer add column aadharno int unique
+    -> ;
+Query OK, 0 rows affected (0.36 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+
+mysql> alter table lecturer modify lname varchar(30);
+Query OK, 0 rows affected (0.44 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> show create table lecturer;
++----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table    | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                          |
++----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| lecturer | CREATE TABLE `lecturer` (
+  `lid` int(11) NOT NULL,
+  `lname` varchar(30) DEFAULT NULL,
+  `specificaion` varchar(20) NOT NULL,
+  `sal` int(11) DEFAULT NULL,
+  `sid` int(11) DEFAULT NULL,
+  `aadharno` int(11) DEFAULT NULL,
+  PRIMARY KEY (`lid`),
+  UNIQUE KEY `aadharno` (`aadharno`),
+  KEY `sid` (`sid`),
+  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`sid`) REFERENCES `school` (`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> commit;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> create procedure getAllProducts()
+    -> begin
+    -> select * from products;
+    -> end //
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> delimiter //
+mysql> create procedure getAllP()
+    -> begin
+    -> select "hello world";
+    -> end //
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call getAllp()
+    -> //
++-------------+
+| hello world |
++-------------+
+| hello world |
++-------------+
+1 row in set (0.02 sec)
+
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> create procedure getAllP1(v_p int)
+    -> begin
+    -> select v_p
+    -> ;
+    -> end //
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call getAllP1(1)//
++------+
+| v_p  |
++------+
+|    1 |
++------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> create procedure addn(a int, b int)
+    -> begin
+    -> declare c int;
+    -> set c=a+b;
+    -> select c;
+    -> end//
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call addn( 1,1)
+    -> ;
+    -> //
++------+
+| c    |
++------+
+|    2 |
++------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> show databases//
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| department         |
+| mitali             |
+| test               |
+| university         |
++--------------------+
+37 rows in set (0.00 sec)
+
+mysql> use mitali//
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables//
++------------------+
+| Tables_in_mitali |
++------------------+
+| department       |
+| emp              |
++------------------+
+2 rows in set (0.00 sec)
+
+mysql> describe department//
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| dno   | int(11)     | NO   | PRI | NULL    |       |
+| dname | varchar(20) | NO   |     | NULL    |       |
+| dloc  | varchar(20) | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> describe emp//
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| eno      | int(11)     | NO   | PRI | NULL    |       |
+| ename    | varchar(20) | NO   |     | NULL    |       |
+| job      | char(1)     | YES  |     | NULL    |       |
+| mgr      | int(11)     | YES  |     | NULL    |       |
+| hiredate | date        | YES  |     | NULL    |       |
+| sal      | int(11)     | YES  |     | NULL    |       |
+| comm     | int(11)     | YES  |     | NULL    |       |
+| dno      | int(11)     | YES  | MUL | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+8 rows in set (0.00 sec)
+
+mysql> select * from emp//
++------+-------+------+------+------------+------+------+------+
+| eno  | ename | job  | mgr  | hiredate   | sal  | comm | dno  |
++------+-------+------+------+------------+------+------+------+
+| 7369 | smith | c    | 7902 | 1980-12-17 |  800 |  300 |   20 |
+| 7499 | allen | s    | 7698 | 1981-02-20 | 1760 |  300 |   30 |
++------+-------+------+------+------------+------+------+------+
+2 rows in set (0.02 sec)
+
+
+mysql> create procedure p1(v_eno int)
+    -> begin
+    -> declare v_name varchar(20);
+    -> select ename into v_name from emp where v_eno=eno;
+    -> select v_name;
+    -> end//
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call p1(7369)//
++--------+
+| v_name |
++--------+
+| smith  |
++--------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> create procedure p2(v_eno int)
+    -> begin 
+    -> declare v_sal int(11);
+    -> select sal into v_sal from emp where v_eno=eno;
+    -> select v_sal;
+    -> end//
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call p2(7499)//
++-------+
+| v_sal |
++-------+
+|  1760 |
++-------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+
+mysql> create procedure p3(v_eno int) 
+    -> begin
+    -> declare v_sal int;
+    -> select sal into v_sal from emp where eno=v_eno;
+    -> if v_sal<2000 then select 0;
+    -> elseif v_sal<6000 and v_sal>2000 then select v_sal*0.10;
+    -> else select v_sal*.20;
+    -> end if;
+    -> end //
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> call p3(7499)//
++---+
+| 0 |
++---+
+| 0 |
++---+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+
+
+
+
+
+
